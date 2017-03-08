@@ -16,6 +16,9 @@ public class Game extends Canvas implements Runnable {
 	public static String[] debugMessage = {"", "", "", "", "", ""};
 	
 	// Game initialization
+	// TODO: move code from constructor to main()
+	// reason: classes require a Game object before the constructor is finished running
+	// TODO: make Game class singleton
 	public Game() {
 		new Window(WIDTH, HEIGHT, "Sucrosu", this);
 		startTime = System.currentTimeMillis();
