@@ -10,7 +10,7 @@ public class Game extends Canvas implements Runnable {
 	
 	private long startTime;
 	public long localTime;
-	public int mx, my; 
+	public int mx, my;
 	
 	public Input input;
 	public static String[] debugMessage = {"", "", "", "", "", ""};
@@ -57,7 +57,6 @@ public class Game extends Canvas implements Runnable {
 			g.drawString(debugMessage[i], 12, 20+i*20);
 		}
 		g.drawString(debugMessage[5], WIDTH - 75, HEIGHT - 40);
-		System.out.println(debugMessage[5]);
 		
 		g.dispose();
 		bs.show();
