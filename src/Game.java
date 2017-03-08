@@ -10,7 +10,7 @@ public class Game extends Canvas implements Runnable {
 	
 	private long startTime;
 	public long localTime;
-	public int mx, my;
+	public int mx, my; 
 	
 	public Input input;
 	public static String[] debugMessage = {"", "", "", "", "", ""};
