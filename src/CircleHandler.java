@@ -17,7 +17,7 @@ public class CircleHandler {
 	}
 	
 	// deal with all objects
-	private LinkedList<HitCircle> circles = new LinkedList<HitCircle>();
+	private LinkedList<HitCircle> circles = new LinkedList<>();
 	private CircleData data;
 	private int nextIndex = 0;
 	private HitCircle currentCircle;
@@ -25,13 +25,13 @@ public class CircleHandler {
 	public void tick() {
 		if (circles.size() > 0)
 			currentCircle = circles.get(0);
+		
 		// spawn circles in
 		if (nextIndex < data.length) {
 			Entry nextCircle = data.getEntry(nextIndex);
 			game.debugMessage[2] = String.format("Next Circle to spawn: (%d) " + nextCircle, nextIndex);
 			if (game.localTime > nextCircle.time - SPAWN_BUFFER) {
 				circles.add(new HitCircle(nextCircle.x, nextCircle.y, nextCircle.time, nextIndex));
-				System.out.printf("Circle %d added at position (%d,%d) at time %d\n", nextIndex, nextCircle.x, nextCircle.y, nextCircle.time);
 				nextIndex++;
 			}
 		}
@@ -52,6 +52,15 @@ public class CircleHandler {
 		for (int i = circles.size()-1; i >= 0; i--) {
 			if (circles.get(i).getState() != HitCircle.State.DELETEME)
 				circles.get(i).render(g);
+		}
+		g.setColor(Color.GREEN);
+		if (circles.size() != 0)
+			g.fillOval(currentCircle.x-currentCircle.radius, currentCircle.y-currentCircle.radius, currentCircle.radius*2, currentCircle.radius*2);
+	}
+	
+	public void handleClick(int mx, int my) {
+		if (currentCircle != null) {
+			currentCircle.onClick(mx, my);
 		}
 	}
 	
@@ -1070,9 +1079,6 @@ public class CircleHandler {
 	}
 	
 	private class CircleData {
-		private Entry[] entries;
-		private int filled;
-		private int length;
 		public CircleData(int length) {
 			this.length = length;
 			entries = new Entry[length];
@@ -1081,9 +1087,12 @@ public class CircleHandler {
 		public Entry getEntry(int i) {
 			return entries[i];
 		}
+		private Entry[] entries;
+		private int filled;
+		private int length;
 		
 		public void push(int x, int y, int time) {
-			entries[filled] = new Entry(x+100, y+100, time);
+			entries[filled] = new Entry(x+100, y+100, time+800);
 			filled++;
 		}
 		

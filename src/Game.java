@@ -7,10 +7,12 @@ public class Game extends Canvas implements Runnable {
 	private boolean running = false;
 	public static final int WIDTH = (int) (800); //  640
 	public static final int HEIGHT = (int) (600); // 360
+	public static final int INPUT_OFFSET = 50;
+	
+	private final double TIMESCALE = 1;
 	
 	private long startTime;
 	public int localTime;
-	public int mx, my;
 	
 	private CircleHandler handler;
 	
@@ -20,21 +22,21 @@ public class Game extends Canvas implements Runnable {
 		new Window(WIDTH, HEIGHT, "Sucrosu", this);
 		Input input = new Input(this);
 		handler = new CircleHandler(this);
-		handler.setDifficulty(9.0, 10.0, 4.0);
+		handler.setDifficulty(9.0, 4.0, 0.0);
 		addMouseListener(input);
 		addMouseMotionListener(input);
+		addKeyListener(input);
 		
 		start();
 	}
 	
 	private void tick() {
-		localTime = (int) (System.currentTimeMillis() - startTime);
+		localTime = (int) ((int) (System.currentTimeMillis() - startTime) * TIMESCALE);
 		
 		handler.tick();
 		handler.tickAll();
 		
 		debugMessage[0] = "Time: " + String.valueOf(localTime);
-		debugMessage[1] = String.format("Mouse: (%d, %d)", mx, my);
 		debugMessage[3] = String.format("Circles on screen: %d", handler.objectCount());
 		handler.tick();
 	}
@@ -64,7 +66,7 @@ public class Game extends Canvas implements Runnable {
 	
 	public void run() {
 		long lastTime = System.nanoTime();
-		double amountOfTicks = 60.0;
+		double amountOfTicks = 120.0;
 		double ns = 1000000000 / amountOfTicks;
 		double delta = 0;
 		long timer = System.currentTimeMillis();

@@ -25,6 +25,8 @@ import java.awt.*;
 */
 
 public class HitCircle {
+	
+	
 	enum State {
 		WAIT,
 		VISIBLE,
@@ -47,7 +49,7 @@ public class HitCircle {
 	public int x, y;
 	private int label;
 	
-	private int radius;
+	public int radius;
 	private int approachRadius;
 	private Color approachColor;
 	
@@ -71,9 +73,9 @@ public class HitCircle {
 			visibleDuration = (int) (1800 - (120 * master.AR));
 		else
 			visibleDuration = (int) (1200 - (150 * (master.AR - 5)));
-		timingWindow_300 = (int) (78 - (6 * master.OD));
-		timingWindow_100 = (int) (138 - (8 * master.OD));
-		timingWindow_50  = (int) (198 - (10 * master.OD));
+		timingWindow_300 = (int) (78 - (6 * master.OD)) / 2;
+		timingWindow_100 = (int) (138 - (8 * master.OD)) / 2;
+		timingWindow_50  = (int) (198 - (10 * master.OD)) / 2;
 		
 		state = State.WAIT;
 	}
@@ -85,7 +87,6 @@ public class HitCircle {
 		approachRadius   = Game.clamp(approachRadius, radius-1, 10000);
 		alpha            = 255 - ((targetTime - visibleDuration) - game.localTime);
 		alpha            = Game.clamp(alpha, 0, 255);
-//		approachColor    = new Color(241, 250, 140, alpha);
 		approachColor    = new Color(255, 255, 255, alpha);
 		
 		// state system
@@ -97,18 +98,28 @@ public class HitCircle {
 				}
 				break;
 			case VISIBLE:
-				color = new Color(0, 0, 100);
+				color = new Color(0, 0, 116, alpha);
 				if (game.localTime > targetTime - timingWindow_50) {
 					state = State.CLICKABLE;
 				}
 				break;
 			case CLICKABLE:
-				color = new Color(0, 0, 150);
+				color = new Color(0, 135, 195);
+//				if (Math.abs(eta) < timingWindow_300)
+//					color = Color.GREEN;
+//				else if (Math.abs(eta) < timingWindow_100)
+//					color = Color.YELLOW;
+//				else if (Math.abs(eta) < timingWindow_50)
+//					color = Color.RED;
 				if (game.localTime > targetTime + timingWindow_50) {
 					state = State.DELETEME;
 				}
 				break;
 			case CLICKED:
+				color = Color.WHITE;
+				if (game.localTime > targetTime + timingWindow_50) {
+					state = State.DELETEME;
+				}
 				// TODO: animate hit explosion
 				// TODO: create particle effect
 				// switch state to DELETEME after a period of time
@@ -116,17 +127,45 @@ public class HitCircle {
 		}
 	}
 	
+	public void onClick(int mx, int my) {
+		double distance = Math.hypot(mx - x, my - y); 
+		if (distance < radius) {
+			if (state == State.CLICKABLE) {
+				if (Math.abs(eta) < timingWindow_300)
+					game.debugMessage[1] = ("300~! " + eta);
+				else if (Math.abs(eta) < timingWindow_100)
+					game.debugMessage[1] = ("100~! " + eta);
+				else if (Math.abs(eta) < timingWindow_50)
+					game.debugMessage[1] = ("50~! " + eta);
+			} else {
+				game.debugMessage[1] = ("Timing Miss~!");
+			}
+			this.state = State.DELETEME;
+		} else {
+			game.debugMessage[1] = String.format("Miss~! You clicked: (%d, %d) Circle was at (%d, %d)", mx, my, x, y);
+		}
+	}
+	
 	public void render(Graphics g) {
 		if (state != State.DELETEME) {
+			// approach circle
 			g.setColor(approachColor);
 			g.drawOval(x-approachRadius, y-approachRadius, approachRadius*2, approachRadius*2);
 			
+			// circle
 			g.setColor(color);
 			g.fillOval(x-radius, y-radius, radius*2, radius*2);
+			g.setColor(new Color(241, 250, 140, alpha));
+			for (int i = 0; i < 5; i++) {
+				g.drawOval(x-(radius-i), y-(radius-i), (radius-i)*2, (radius-i)*2);
+			}
+			g.setColor(new Color(20, 20, 20, 200));
+			g.fillOval(x-radius, y-radius, radius*2, radius*2);
 			
+			// label
 			g.setColor(new Color(255, 255, 255, alpha));
-//			g.drawString(String.valueOf(eta), x, y);
-			g.drawString(String.valueOf(label), x-4, y+5);
+			g.drawString(String.valueOf(eta), x, y);
+//			g.drawString(String.valueOf(label), x-4, y+5);
 		}
 	}
 	

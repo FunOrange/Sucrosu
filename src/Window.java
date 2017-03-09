@@ -12,7 +12,7 @@ public class Window extends JFrame {
 		setResizable(false);
 //		setLocationRelativeTo();
 		setVisible(true);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		add(game);
 	}
 }
