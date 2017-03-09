@@ -2,45 +2,42 @@ import java.awt.*;
 import java.awt.image.BufferStrategy;
 
 public class Game extends Canvas implements Runnable {
+	private static Game game;
 	private Thread thread;
 	private boolean running = false;
-	
-	public static final int WIDTH = 640;
-	public static final int HEIGHT = 360;
+	public static final int WIDTH = (int) (800); //  640
+	public static final int HEIGHT = (int) (600); // 360
 	
 	private long startTime;
-	public long localTime;
+	public int localTime;
 	public int mx, my;
 	
-	public Input input;
-	public static String[] debugMessage = {"", "", "", "", "", ""};
+	private CircleHandler handler;
 	
-	// Game initialization
-	// TODO: move code from constructor to main()
-	// reason: classes require a Game object before the constructor is finished running
-	// TODO: make Game class singleton
-	public Game() {
+	public String[] debugMessage = {"", "", "", "", "", ""};
+	
+	private Game() {
 		new Window(WIDTH, HEIGHT, "Sucrosu", this);
-		startTime = System.currentTimeMillis();
+		Input input = new Input(this);
+		handler = new CircleHandler(this);
+		handler.setDifficulty(9.0, 10.0, 4.0);
+		addMouseListener(input);
+		addMouseMotionListener(input);
 		
-		input = new Input(this);
-		this.addMouseListener(input);
-		this.addMouseMotionListener(input);
-		// add hit circles
-		for (int i = 0; i < 25; i++) {
-			HitCircle.add(60 + (i%6)*100, 65 + (i%4)*75, 2000 + i*1000);
-		}
-		
-		HitCircle.setGameInstance(this);
+		start();
 	}
 	
 	private void tick() {
-		localTime = System.currentTimeMillis() - startTime;
+		localTime = (int) (System.currentTimeMillis() - startTime);
+		
+		handler.tick();
+		handler.tickAll();
+		
 		debugMessage[0] = "Time: " + String.valueOf(localTime);
 		debugMessage[1] = String.format("Mouse: (%d, %d)", mx, my);
-		HitCircle.tickAll();
+		debugMessage[3] = String.format("Circles on screen: %d", handler.objectCount());
+		handler.tick();
 	}
-	
 	private void render() {
 		BufferStrategy bs = this.getBufferStrategy();
 		if (bs == null) {
@@ -53,7 +50,7 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(new Color(40, 42, 54));
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
-		HitCircle.renderAll(g);
+		handler.renderAll(g);
 		
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < debugMessage.length-1; i++) {
@@ -95,6 +92,7 @@ public class Game extends Canvas implements Runnable {
 		thread = new Thread(this);
 		thread.start();
 		running = true;
+		startTime = System.currentTimeMillis();
 	}
 	public synchronized void stop() {
 		try {
@@ -105,6 +103,17 @@ public class Game extends Canvas implements Runnable {
 		}
 	}
 	
+	public static void main(String[] args) {
+		game = new Game();
+		
+//		Random rand = new Random();
+//		for (int i = 24; i >= 0; i--) {
+////			HitCircle.add(60 + (i%6)*100, 65 + (i%4)*75, 2000 + i*1000);
+//			HitCircle.add(rand.nextInt(WIDTH), rand.nextInt(HEIGHT), 2000 + i*600);
+//		}
+		
+	}
+	
 	public static int clamp(int target, int min, int max) {
 		if (target < min)
 			return min;
@@ -113,7 +122,11 @@ public class Game extends Canvas implements Runnable {
 		return target;
 	}
 	
-	public static void main(String[] args) {
-		new Game();
+	public static Game getInstance() {
+		return game;
+	}
+	
+	public CircleHandler getCircleHandler() {
+		return handler;
 	}
 }

@@ -1,5 +1,28 @@
 import java.awt.*;
-import java.util.LinkedList;
+
+/*  OD TABLE
+	* 300 WINDOW
+	* Base: 78 ms
+	* Decreases by 6 ms with every point to OD
+	* 
+	* 100 WINDOW
+	* Base: 138 ms
+	* Decreases by 8 with every point to OD
+	* 
+	* 50 WINDOW
+	* Base: 198 ms
+	* Decreases by 10 with every point to OD
+*/
+
+/*  AR TABLE
+	* AR 0-5:
+	* Base: 1800 ms
+	* Decreases by 120 ms with every point to AR, up to AR 5
+	* 
+	* AR 5-10
+	* Base: 1200 ms at AR 5
+	* Decreases by 150 ms with every additional point to AR (AR - 5)
+*/
 
 public class HitCircle {
 	enum State {
@@ -9,100 +32,86 @@ public class HitCircle {
 		CLICKED,
 		DELETEME
 	}
-	// BEGIN STATIC
-	private static LinkedList<HitCircle> circles = new LinkedList<HitCircle>();
-	public static void add(int x, int y, long time) {
-		circles.add(new HitCircle(x, y, time, circles.size()));
-	}
-	public static void tickAll() {
-		for (HitCircle circle : circles)
-			circle.tick();
-	}
-	public static void renderAll(Graphics g) {
-		for (HitCircle circle : circles)
-			circle.render(g);
-	}
-	public static void setGameInstance(Game gameInstance) {
-		game = gameInstance;
-	}
-	
-	private long visibleTime, clickableTime, deleteTime;
+	// some variables
+	private int visibleDuration;
+	private int timingWindow_50, timingWindow_100, timingWindow_300;
 	private State state;
 	private Color color;
 	private static Game game;
 	private int alpha;
+	private int eta;
+	private CircleHandler master;
+	
 	// instance specific properties
-	private long targetTime;
-	private int x, y;
+	private int targetTime;
+	public int x, y;
 	private int label;
-	// map dependent properties
-	private double AR, OD, CS;
+	
 	private int radius;
 	private int approachRadius;
 	private Color approachColor;
 	
-	public HitCircle(int x, int y, long targetTime, int label) {
+	public HitCircle(int x, int y, int targetTime, int label) {
+		if (game == null) {
+			game = Game.getInstance();
+		}
+		master = game.getCircleHandler();
+		
 		this.targetTime = targetTime;
 		this.x = x;
 		this.y = y;
 		this.label = label;
 		// map dependent properties
-		AR = 6;
-		OD = 2;
-		CS = 6;
 		int MIN_RADIUS = 15;
 		int MAX_RADIUS = 45;
-		radius = (int) (MIN_RADIUS + ((10-CS)/10)*(MAX_RADIUS - MIN_RADIUS));
+		radius = (int) (MIN_RADIUS + ((10-master.CS)/10)*(MAX_RADIUS - MIN_RADIUS));
+		
 		// other variables
-		visibleTime = this.targetTime - 1000;
-		clickableTime = this.targetTime - 100;
-		deleteTime = this.targetTime + 100;
+		if (master.AR <= 5)
+			visibleDuration = (int) (1800 - (120 * master.AR));
+		else
+			visibleDuration = (int) (1200 - (150 * (master.AR - 5)));
+		timingWindow_300 = (int) (78 - (6 * master.OD));
+		timingWindow_100 = (int) (138 - (8 * master.OD));
+		timingWindow_50  = (int) (198 - (10 * master.OD));
+		
 		state = State.WAIT;
 	}
 	
-	// TODO: make circles clickable
-	// TODO: make circles deletable
 	public void tick() {
 		// calculate approach circle movement
-		int delta        = (int) (targetTime - game.localTime);
-		approachRadius   = (int) (radius + (AR/100)*delta);
-		approachRadius   = Game.clamp(approachRadius, radius-2, 10000);
-		alpha            = 255 - (delta-1000);
+		eta              = targetTime - game.localTime;
+		approachRadius   = (int) (radius + (100-radius)*((double) eta/(double) visibleDuration));
+		approachRadius   = Game.clamp(approachRadius, radius-1, 10000);
+		alpha            = 255 - ((targetTime - visibleDuration) - game.localTime);
 		alpha            = Game.clamp(alpha, 0, 255);
-		approachColor    = new Color(241, 250, 140, alpha);
+//		approachColor    = new Color(241, 250, 140, alpha);
+		approachColor    = new Color(255, 255, 255, alpha);
 		
 		// state system
-		// TODO: state "VISIBLE" redundant?
 		switch (state) {
 			case WAIT:
-				color = new Color(0, 0, 0, 0);
-				if (game.localTime > visibleTime) {
+				color = new Color(0, 0, 100, alpha);
+				if (game.localTime > targetTime - visibleDuration) {
 					state = State.VISIBLE;
 				}
 				break;
 			case VISIBLE:
-				alpha = (int) (game.localTime - visibleTime);
-				alpha = Game.clamp(alpha, 0, 255);
-				color = new Color(0, 0, 200, alpha);
-				if (game.localTime > clickableTime) {
+				color = new Color(0, 0, 100);
+				if (game.localTime > targetTime - timingWindow_50) {
 					state = State.CLICKABLE;
 				}
 				break;
 			case CLICKABLE:
-				if (Math.hypot(game.mx - x, game.my - y) < radius)
-					color = Color.WHITE;
-				else 
-					color = Color.CYAN;
-				if (game.localTime > deleteTime) {
+				color = new Color(0, 0, 150);
+				if (game.localTime > targetTime + timingWindow_50) {
 					state = State.DELETEME;
 				}
 				break;
 			case CLICKED:
-				// animate hit explosion
-				// delete self
-				break;
-			case DELETEME:
-				color = new Color(0, 0, 0, 0);
+				// TODO: animate hit explosion
+				// TODO: create particle effect
+				// switch state to DELETEME after a period of time
 				break;
 		}
 	}
@@ -116,7 +125,20 @@ public class HitCircle {
 			g.fillOval(x-radius, y-radius, radius*2, radius*2);
 			
 			g.setColor(new Color(255, 255, 255, alpha));
-			g.drawString(String.valueOf(label), x, y);
+//			g.drawString(String.valueOf(eta), x, y);
+			g.drawString(String.valueOf(label), x-4, y+5);
 		}
+	}
+	
+	public State getState() {
+		return state;
+	}
+	
+	public String toString() {
+		return "HitCircle{" +
+			"x=" + x +
+			", y=" + y +
+			", targetTime=" + targetTime +
+			'}';
 	}
 }
