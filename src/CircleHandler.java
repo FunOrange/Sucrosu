@@ -3,8 +3,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class CircleHandler {
-	private Game game;
 	private static final int SPAWN_BUFFER = 800;
+	private LinkedList<HitCircle> circles = new LinkedList<HitCircle>();
+	private Game game;
 	// map dependent properties
 	public double AR, OD, CS;
 	public void setDifficulty(double ar, double od, double cs) {
@@ -16,8 +17,6 @@ public class CircleHandler {
 		System.out.println("CS: " + CS);
 	}
 	
-	// deal with all objects
-	private LinkedList<HitCircle> circles = new LinkedList<>();
 	private CircleData data;
 	private int nextIndex = 0;
 	private HitCircle currentCircle;
@@ -37,21 +36,19 @@ public class CircleHandler {
 		}
 	}
 	public void tickAll() {
-		// i don't get iterators
 		Iterator<HitCircle> iter = circles.iterator();
 		while (iter.hasNext()) {
-			HitCircle thisCircle = iter.next();
-			if (thisCircle.getState() == HitCircle.State.DELETEME)
+			HitCircle c = iter.next();
+			if (c.getState() == HitCircle.State.DELETEME) {
 				iter.remove();
-			else
-				thisCircle.tick();
+			} else
+				c.tick();
 		}
 	}
 	public void renderAll(Graphics g) {
 		// render in reverse order
 		for (int i = circles.size()-1; i >= 0; i--) {
-			if (circles.get(i).getState() != HitCircle.State.DELETEME)
-				circles.get(i).render(g);
+			circles.get(i).render(g);
 		}
 		g.setColor(Color.GREEN);
 		if (circles.size() != 0)
@@ -1073,9 +1070,7 @@ public class CircleHandler {
 		data.push(500,352,170749);
 		data.push(312,232,170915);
 		data.push(512,72,171082);
-		
-		
-		data.list();
+//		data.list();
 	}
 	
 	private class CircleData {
@@ -1094,12 +1089,6 @@ public class CircleHandler {
 		public void push(int x, int y, int time) {
 			entries[filled] = new Entry(x+100, y+100, time+800);
 			filled++;
-		}
-		
-		public void list() {
-			for (Entry e: entries) {
-				System.out.println(e);
-			}
 		}
 	}
 	private class Entry {

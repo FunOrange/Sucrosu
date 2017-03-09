@@ -25,8 +25,6 @@ import java.awt.*;
 */
 
 public class HitCircle {
-	
-	
 	enum State {
 		WAIT,
 		VISIBLE,
@@ -40,33 +38,33 @@ public class HitCircle {
 	private State state;
 	private Color color;
 	private static Game game;
+	private static ParticleHandler particleHandler;
 	private int alpha;
 	private int eta;
 	private CircleHandler master;
-	
 	// instance specific properties
 	private int targetTime;
 	public int x, y;
-	private int label;
 	
 	public int radius;
 	private int approachRadius;
 	private Color approachColor;
 	
 	public HitCircle(int x, int y, int targetTime, int label) {
-		if (game == null) {
+		if (game == null)
 			game = Game.getInstance();
-		}
+		if (particleHandler == null)
+			particleHandler = game.getParticleHandler();
+		
 		master = game.getCircleHandler();
 		
 		this.targetTime = targetTime;
 		this.x = x;
 		this.y = y;
-		this.label = label;
 		// map dependent properties
 		int MIN_RADIUS = 15;
 		int MAX_RADIUS = 45;
-		radius = (int) (MIN_RADIUS + ((10-master.CS)/10)*(MAX_RADIUS - MIN_RADIUS));
+		radius = (int) (MIN_RADIUS + ((10 - master.CS) / 10) * (MAX_RADIUS - MIN_RADIUS));
 		
 		// other variables
 		if (master.AR <= 5)
@@ -75,19 +73,20 @@ public class HitCircle {
 			visibleDuration = (int) (1200 - (150 * (master.AR - 5)));
 		timingWindow_300 = (int) (78 - (6 * master.OD)) / 2;
 		timingWindow_100 = (int) (138 - (8 * master.OD)) / 2;
-		timingWindow_50  = (int) (198 - (10 * master.OD)) / 2;
+		timingWindow_50 = (int) (198 - (10 * master.OD)) / 2;
 		
 		state = State.WAIT;
 	}
 	
 	public void tick() {
 		// calculate approach circle movement
-		eta              = targetTime - game.localTime;
-		approachRadius   = (int) (radius + (100-radius)*((double) eta/(double) visibleDuration));
-		approachRadius   = Game.clamp(approachRadius, radius-1, 10000);
-		alpha            = 255 - ((targetTime - visibleDuration) - game.localTime);
-		alpha            = Game.clamp(alpha, 0, 255);
-		approachColor    = new Color(255, 255, 255, alpha);
+		// FIXME: this shit is clearly erroneous
+		eta = targetTime - game.localTime;
+		approachRadius = (int) (radius + (100 - radius) * ((double) eta / (double) visibleDuration));
+		approachRadius = Game.clamp(approachRadius, radius - 1, 10000);
+		alpha = 255 - ((targetTime - visibleDuration) - game.localTime);
+		alpha = Game.clamp(alpha, 0, 255);
+		approachColor = new Color(255, 255, 255, alpha);
 		
 		// state system
 		switch (state) {
@@ -128,17 +127,22 @@ public class HitCircle {
 	}
 	
 	public void onClick(int mx, int my) {
-		double distance = Math.hypot(mx - x, my - y); 
+		double distance = Math.hypot(mx - x, my - y);
 		if (distance < radius) {
 			if (state == State.CLICKABLE) {
-				if (Math.abs(eta) < timingWindow_300)
+				if (Math.abs(eta) < timingWindow_300) {
 					game.debugMessage[1] = ("300~! " + eta);
-				else if (Math.abs(eta) < timingWindow_100)
+					particleHandler.add(new TimingJudge(x, y, 1));
+				} else if (Math.abs(eta) < timingWindow_100) {
 					game.debugMessage[1] = ("100~! " + eta);
-				else if (Math.abs(eta) < timingWindow_50)
+					particleHandler.add(new TimingJudge(x, y, 2));
+				} else if (Math.abs(eta) < timingWindow_50) {
 					game.debugMessage[1] = ("50~! " + eta);
+					particleHandler.add(new TimingJudge(x, y, 3));
+				}
 			} else {
 				game.debugMessage[1] = ("Timing Miss~!");
+				particleHandler.add(new TimingJudge(x, y, 0));
 			}
 			this.state = State.DELETEME;
 		} else {
@@ -150,17 +154,17 @@ public class HitCircle {
 		if (state != State.DELETEME) {
 			// approach circle
 			g.setColor(approachColor);
-			g.drawOval(x-approachRadius, y-approachRadius, approachRadius*2, approachRadius*2);
+			g.drawOval(x - approachRadius, y - approachRadius, approachRadius * 2, approachRadius * 2);
 			
 			// circle
 			g.setColor(color);
-			g.fillOval(x-radius, y-radius, radius*2, radius*2);
+			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
 			g.setColor(new Color(241, 250, 140, alpha));
 			for (int i = 0; i < 5; i++) {
-				g.drawOval(x-(radius-i), y-(radius-i), (radius-i)*2, (radius-i)*2);
+				g.drawOval(x - (radius - i), y - (radius - i), (radius - i) * 2, (radius - i) * 2);
 			}
 			g.setColor(new Color(20, 20, 20, 200));
-			g.fillOval(x-radius, y-radius, radius*2, radius*2);
+			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
 			
 			// label
 			g.setColor(new Color(255, 255, 255, alpha));

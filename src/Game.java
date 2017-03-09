@@ -9,23 +9,26 @@ public class Game extends Canvas implements Runnable {
 	public static final int HEIGHT = (int) (600); // 360
 	public static final int INPUT_OFFSET = 50;
 	
-	private final double TIMESCALE = 1;
+	private final double TIMESCALE =  0.7;
 	
 	private long startTime;
 	public int localTime;
 	
-	private CircleHandler handler;
+	private CircleHandler circleHandler;
+	private ParticleHandler particleHandler;
 	
 	public String[] debugMessage = {"", "", "", "", "", ""};
 	
 	private Game() {
-		new Window(WIDTH, HEIGHT, "Sucrosu", this);
-		Input input = new Input(this);
-		handler = new CircleHandler(this);
-		handler.setDifficulty(9.0, 4.0, 0.0);
+		Window window = new Window(this);
+		Input input = new Input(this, window);
+		circleHandler = new CircleHandler(this);
+		particleHandler = new ParticleHandler();
+		circleHandler.setDifficulty(9.0, 4.0, 0.0);
 		addMouseListener(input);
 		addMouseMotionListener(input);
 		addKeyListener(input);
+		
 		
 		start();
 	}
@@ -33,12 +36,13 @@ public class Game extends Canvas implements Runnable {
 	private void tick() {
 		localTime = (int) ((int) (System.currentTimeMillis() - startTime) * TIMESCALE);
 		
-		handler.tick();
-		handler.tickAll();
+		circleHandler.tick();
+		circleHandler.tickAll();
+		particleHandler.tickAll();
 		
 		debugMessage[0] = "Time: " + String.valueOf(localTime);
-		debugMessage[3] = String.format("Circles on screen: %d", handler.objectCount());
-		handler.tick();
+		debugMessage[3] = String.format("Circles on screen: %d", circleHandler.objectCount());
+		circleHandler.tick();
 	}
 	private void render() {
 		BufferStrategy bs = this.getBufferStrategy();
@@ -52,7 +56,8 @@ public class Game extends Canvas implements Runnable {
 		g.setColor(new Color(40, 42, 54));
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
-		handler.renderAll(g);
+		circleHandler.renderAll(g);
+		particleHandler.renderAll(g);
 		
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < debugMessage.length-1; i++) {
@@ -90,15 +95,19 @@ public class Game extends Canvas implements Runnable {
 		}
 		stop();
 	}
-	public synchronized void start() {
+	private synchronized void start() {
+		System.out.println("Starting application...");
 		thread = new Thread(this);
 		thread.start();
 		running = true;
 		startTime = System.currentTimeMillis();
 	}
-	public synchronized void stop() {
+	private synchronized void stop() {
+		System.out.println("Ending application...");
 		try {
+			System.out.println("joining thread");
 			thread.join();
+			System.out.println("thread joined");
 			running = false;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -129,6 +138,10 @@ public class Game extends Canvas implements Runnable {
 	}
 	
 	public CircleHandler getCircleHandler() {
-		return handler;
+		return circleHandler;
+	}
+	
+	public ParticleHandler getParticleHandler() {
+		return particleHandler;
 	}
 }
