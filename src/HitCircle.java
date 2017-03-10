@@ -1,19 +1,5 @@
 import java.awt.*;
-
-/*  OD TABLE
-	* 300 WINDOW
-	* Base: 78 ms
-	* Decreases by 6 ms with every point to OD
-	* 
-	* 100 WINDOW
-	* Base: 138 ms
-	* Decreases by 8 with every point to OD
-	* 
-	* 50 WINDOW
-	* Base: 198 ms
-	* Decreases by 10 with every point to OD
-*/
-
+// TODO: make AR table to debug approach circles
 /*  AR TABLE
 	* AR 0-5:
 	* Base: 1800 ms
@@ -24,7 +10,7 @@ import java.awt.*;
 	* Decreases by 150 ms with every additional point to AR (AR - 5)
 */
 
-public class HitCircle {
+public class HitCircle extends GameObject {
 	enum State {
 		WAIT,
 		VISIBLE,
@@ -37,8 +23,7 @@ public class HitCircle {
 	private int timingWindow_50, timingWindow_100, timingWindow_300;
 	private State state;
 	private Color color;
-	private static Game game;
-	private static ParticleHandler particleHandler;
+	private ParticleHandler particleHandler;
 	private int alpha;
 	private int eta;
 	private CircleHandler master;
@@ -51,10 +36,7 @@ public class HitCircle {
 	private Color approachColor;
 	
 	public HitCircle(int x, int y, int targetTime, int label) {
-		if (game == null)
-			game = Game.getInstance();
-		if (particleHandler == null)
-			particleHandler = game.getParticleHandler();
+		particleHandler = game.getParticleHandler();
 		
 		master = game.getCircleHandler();
 		
@@ -71,11 +53,24 @@ public class HitCircle {
 			visibleDuration = (int) (1800 - (120 * master.AR));
 		else
 			visibleDuration = (int) (1200 - (150 * (master.AR - 5)));
-		timingWindow_300 = (int) (78 - (6 * master.OD)) / 2;
-		timingWindow_100 = (int) (138 - (8 * master.OD)) / 2;
-		timingWindow_50 = (int) (198 - (10 * master.OD)) / 2;
+		// TODO: test for cases OD:[1-10]
+		timingWindow_300 = getTimingWindow_300(master.OD);
+		timingWindow_100 = getTimingWindow_100(master.OD);
+		timingWindow_50 = getTimingWindow_50(master.OD);
 		
 		state = State.WAIT;
+	}
+	
+	private int getTimingWindow_50(double OD) {
+		return (int) (198 - (10 * OD)) / 2;
+	}
+	
+	private int getTimingWindow_100(double OD) {
+		return (int) (138 - (8 * OD)) / 2;
+	}
+	
+	private int getTimingWindow_300(double OD) {
+		return (int) (78 - (6 * OD)) / 2;
 	}
 	
 	public void tick() {
@@ -114,15 +109,6 @@ public class HitCircle {
 					state = State.DELETEME;
 				}
 				break;
-			case CLICKED:
-				color = Color.WHITE;
-				if (game.localTime > targetTime + timingWindow_50) {
-					state = State.DELETEME;
-				}
-				// TODO: animate hit explosion
-				// TODO: create particle effect
-				// switch state to DELETEME after a period of time
-				break;
 		}
 	}
 	
@@ -150,7 +136,7 @@ public class HitCircle {
 		}
 	}
 	
-	public void render(Graphics g) {
+	public void draw() {
 		if (state != State.DELETEME) {
 			// approach circle
 			g.setColor(approachColor);
@@ -160,16 +146,17 @@ public class HitCircle {
 			g.setColor(color);
 			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
 			g.setColor(new Color(241, 250, 140, alpha));
-			for (int i = 0; i < 5; i++) {
-				g.drawOval(x - (radius - i), y - (radius - i), (radius - i) * 2, (radius - i) * 2);
-			}
+			g.setStroke(new BasicStroke(5));
+			g.drawOval(x - radius, y - radius, radius * 2, radius * 2);
 			g.setColor(new Color(20, 20, 20, 200));
 			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
 			
 			// label
+			g.setFont(new Font("Arial", Font.PLAIN, 20));
 			g.setColor(new Color(255, 255, 255, alpha));
-			g.drawString(String.valueOf(eta), x, y);
+			g.drawString(String.valueOf(eta), x-14, y+7);
 //			g.drawString(String.valueOf(label), x-4, y+5);
+			g.setFont(Game.DEFAULT_FONT);
 		}
 	}
 	

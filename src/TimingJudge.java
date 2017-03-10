@@ -28,26 +28,25 @@ class TimingJudge extends Particle {
 	}
 	
 	@Override
-	public void render(Graphics g) {
-		Graphics2D g2d = (Graphics2D) g;
-		int radius = 4;
-		g2d.setComposite(getAlphaComposite(alpha));
-		g2d.setColor(color);
+	public void draw() {
+//		g2d.setComposite(GameGraphics.getAlphaComposite(alpha));
+		g.setColor(color);
+		g.drawString("300!", (int) x, (int) y);
 		switch (type) {
 			case 0:
-				g2d.drawString("MISS", (int) x, (int) y);
+				g.drawString("MISS", (int) x, (int) y);
 				break;
 			case 1:
-				g2d.drawString("300!", (int) x, (int) y);
+				g.drawString("300!", (int) x, (int) y);
 				break;
 			case 2:
-				g2d.drawString("100", (int) x, (int) y);
+				g.drawString("100", (int) x, (int) y);
 				break;
 			case 3:
-				g2d.drawString("50", (int) x, (int) y);
+				g.drawString("50", (int) x, (int) y);
 				break;
 		}
-		g2d.setComposite(getAlphaComposite(1.0f));
+//		g2d.setComposite(getAlphaComposite(1.0f));
 	}
 	
 }

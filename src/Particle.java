@@ -1,14 +1,11 @@
 import java.awt.*;
 
-public abstract class Particle {
+public abstract class Particle extends GameObject{
 	public boolean deleteme = false;
 	protected int life;
-	protected double x;
-	protected double y;
-	protected double vx = 0;
-	protected double vy = 0;
-	protected double ax = 0;
-	protected double ay = 0;
+	protected double x, y;
+	protected double vx = 0, vy = 0;
+	protected double ax = 0, ay = 0;
 	protected float alpha;
 	
 	public abstract void tick();
@@ -18,12 +15,5 @@ public abstract class Particle {
 		vx += ax;
 		y += vy;
 		vy += ay;
-	}
-	
-	public abstract void render(Graphics g);
-	
-	protected AlphaComposite getAlphaComposite(float alpha) {
-		int type = AlphaComposite.SRC_OVER;
-		return (AlphaComposite.getInstance(type, alpha));
 	}
 }

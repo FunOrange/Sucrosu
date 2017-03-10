@@ -21,10 +21,10 @@ public class ParticleHandler {
 		}
 	}
 	
-	public void renderAll(Graphics g) {
-		// render in reverse order
+	public void renderAll() {
+		// draw in reverse order
 		for (int i = particles.size()-1; i >= 0; i--) {
-			particles.get(i).render(g);
+			particles.get(i).render();
 		}
 	}
 }

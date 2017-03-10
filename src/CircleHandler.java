@@ -45,12 +45,14 @@ public class CircleHandler {
 				c.tick();
 		}
 	}
-	public void renderAll(Graphics g) {
-		// render in reverse order
+	public void renderAll() {
+		// draw in reverse order
 		for (int i = circles.size()-1; i >= 0; i--) {
-			circles.get(i).render(g);
+			circles.get(i).render();
 		}
-		g.setColor(Color.GREEN);
+		Graphics2D g = game.getGraphics();
+		g.setColor(Color.WHITE);
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.01f));
 		if (circles.size() != 0)
 			g.fillOval(currentCircle.x-currentCircle.radius, currentCircle.y-currentCircle.radius, currentCircle.radius*2, currentCircle.radius*2);
 	}

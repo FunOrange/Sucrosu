@@ -8,6 +8,8 @@ public class Game extends Canvas implements Runnable {
 	public static final int WIDTH = (int) (800); //  640
 	public static final int HEIGHT = (int) (600); // 360
 	public static final int INPUT_OFFSET = 50;
+	public static final Font DEFAULT_FONT = new Font("monospace", Font.PLAIN, 12);
+	private Graphics2D g;
 	
 	private final double TIMESCALE =  0.7;
 	
@@ -50,18 +52,19 @@ public class Game extends Canvas implements Runnable {
 			this.createBufferStrategy(3);
 			return;
 		}
-		Graphics g = bs.getDrawGraphics();
+		g = (Graphics2D) bs.getDrawGraphics();
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		// draw background
 		g.setColor(new Color(40, 42, 54));
 		g.fillRect(0, 0, WIDTH, HEIGHT);
 		
-		circleHandler.renderAll(g);
-		particleHandler.renderAll(g);
+		circleHandler.renderAll();
+		particleHandler.renderAll();
 		
 		g.setColor(Color.WHITE);
 		for (int i = 0; i < debugMessage.length-1; i++) {
-			g.drawString(debugMessage[i], 12, 20+i*20);
+//			g.drawString(debugMessage[i], 12, 20+i*20);
 		}
 		g.drawString(debugMessage[5], WIDTH - 75, HEIGHT - 40);
 		
@@ -116,13 +119,6 @@ public class Game extends Canvas implements Runnable {
 	
 	public static void main(String[] args) {
 		game = new Game();
-		
-//		Random rand = new Random();
-//		for (int i = 24; i >= 0; i--) {
-////			HitCircle.add(60 + (i%6)*100, 65 + (i%4)*75, 2000 + i*1000);
-//			HitCircle.add(rand.nextInt(WIDTH), rand.nextInt(HEIGHT), 2000 + i*600);
-//		}
-		
 	}
 	
 	public static int clamp(int target, int min, int max) {
@@ -141,7 +137,13 @@ public class Game extends Canvas implements Runnable {
 		return circleHandler;
 	}
 	
+	public Graphics2D getGraphics() {
+		return g;
+	}
+	
 	public ParticleHandler getParticleHandler() {
 		return particleHandler;
 	}
+	
+	
 }
