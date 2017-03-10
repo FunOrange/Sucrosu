@@ -117,7 +117,10 @@ public class Game extends Canvas implements Runnable {
 			return max;
 		return target;
 	}
-	
+	// TODO: implement lerp function
+	public static int lerp() {
+		
+	}
 	public static Game getInstance() {
 		return game;
 	}
