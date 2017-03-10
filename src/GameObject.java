@@ -3,33 +3,30 @@ import java.awt.*;
 /**
  * Created by JR on 2017-03-10.
  */
-public abstract class GameObject {
-	// just somde drawing methods and properties
-	protected Graphics2D g;
-	protected Game game;
+abstract class GameObject {
+	// just some things to make drawing game objects easier
+	Graphics2D g;
+	Game game;
 	
-	public GameObject() {
+	GameObject() {
 		game = Game.getInstance();
-		g = game.getGraphics();
 	}
 	
 	public void render() {
 		g = Game.getInstance().getGraphics();
 		setStyle(Style.DEFAULT);
 		draw();
+		setStyle(Style.DEFAULT);
 	}
-	public abstract void draw();
+	
+	protected abstract void draw();
 	
 	// helper functions
-	public void setAlpha(float alpha) {
+	void setAlpha(float alpha) {
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
 	}
 	
-	// draw style presets:
-	public enum Style {
-		DEFAULT,
-	}
-	public void setStyle(Style style) {
+	private void setStyle(Style style) {
 		switch (style) {
 			case DEFAULT:
 				g.setColor(Color.white);

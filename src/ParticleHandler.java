@@ -1,9 +1,8 @@
-import java.awt.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 
 public class ParticleHandler {
-	private LinkedList<Particle> particles = new LinkedList<Particle>();
+	private LinkedList<Particle> particles = new LinkedList<>();
 	
 	public void add(Particle p) {
 		particles.add(p);

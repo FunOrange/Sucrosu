@@ -29,7 +29,7 @@ class TimingJudge extends Particle {
 	
 	@Override
 	public void draw() {
-//		g2d.setComposite(GameGraphics.getAlphaComposite(alpha));
+		setAlpha(alpha);
 		g.setColor(color);
 		g.drawString("300!", (int) x, (int) y);
 		switch (type) {

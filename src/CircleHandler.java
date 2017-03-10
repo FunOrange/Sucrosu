@@ -4,8 +4,15 @@ import java.util.LinkedList;
 
 public class CircleHandler {
 	private static final int SPAWN_BUFFER = 800;
-	private LinkedList<HitCircle> circles = new LinkedList<HitCircle>();
+	private LinkedList<HitCircle> circles = new LinkedList<>();
 	private Game game;
+	private Color[] colors = new Color[] {
+		new Color(139, 233, 253),
+		new Color(80,  250, 123),
+		new Color(255, 121, 198),
+		new Color(189, 147, 249),
+		new Color(241, 250, 140)
+	};
 	// map dependent properties
 	public double AR, OD, CS;
 	public void setDifficulty(double ar, double od, double cs) {
@@ -28,9 +35,8 @@ public class CircleHandler {
 		// spawn circles in
 		if (nextIndex < data.length) {
 			Entry nextCircle = data.getEntry(nextIndex);
-			game.debugMessage[2] = String.format("Next Circle to spawn: (%d) " + nextCircle, nextIndex);
 			if (game.localTime > nextCircle.time - SPAWN_BUFFER) {
-				circles.add(new HitCircle(nextCircle.x, nextCircle.y, nextCircle.time, nextIndex));
+				circles.add(new HitCircle(nextCircle.x, nextCircle.y, nextCircle.time, String.format("%d", nextIndex), colors[(nextIndex/5)%5]));
 				nextIndex++;
 			}
 		}
@@ -50,11 +56,6 @@ public class CircleHandler {
 		for (int i = circles.size()-1; i >= 0; i--) {
 			circles.get(i).render();
 		}
-		Graphics2D g = game.getGraphics();
-		g.setColor(Color.WHITE);
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.01f));
-		if (circles.size() != 0)
-			g.fillOval(currentCircle.x-currentCircle.radius, currentCircle.y-currentCircle.radius, currentCircle.radius*2, currentCircle.radius*2);
 	}
 	
 	public void handleClick(int mx, int my) {
@@ -1111,7 +1112,9 @@ public class CircleHandler {
 		}
 	}
 	
-	public int objectCount() {
-		return circles.size();
-	}
+// --Commented out by Inspection START (2017-03-10 1:21 PM):
+//	public int objectCount() {
+//		return circles.size();
+//	}
+// --Commented out by Inspection STOP (2017-03-10 1:21 PM)
 }

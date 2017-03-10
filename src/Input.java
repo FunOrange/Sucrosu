@@ -1,5 +1,4 @@
 import java.awt.event.*;
-import java.util.Random;
 
 class Input implements MouseMotionListener, MouseListener, KeyListener {
 	private Game game;

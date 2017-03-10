@@ -1,5 +1,6 @@
 import java.awt.*;
-// TODO: make AR table to debug approach circles
+import java.awt.FontMetrics;
+
 /*  AR TABLE
 	* AR 0-5:
 	* Base: 1800 ms
@@ -9,37 +10,38 @@ import java.awt.*;
 	* Base: 1200 ms at AR 5
 	* Decreases by 150 ms with every additional point to AR (AR - 5)
 */
-
 public class HitCircle extends GameObject {
 	enum State {
 		WAIT,
 		VISIBLE,
 		CLICKABLE,
-		CLICKED,
 		DELETEME
 	}
+	
 	// some variables
+	private static final int INITIAL_APPROACH_CIRCLE_RADIUS = 170;
+	private static final double FADE_RATE = 1.5;
 	private int visibleDuration;
 	private int timingWindow_50, timingWindow_100, timingWindow_300;
+	private ParticleHandler particleHandler;
+	private CircleHandler master;
 	private State state;
 	private Color color;
-	private ParticleHandler particleHandler;
+	private String label;
 	private int alpha;
 	private int eta;
-	private CircleHandler master;
 	// instance specific properties
 	private int targetTime;
 	public int x, y;
 	
 	public int radius;
 	private int approachRadius;
-	private Color approachColor;
 	
-	public HitCircle(int x, int y, int targetTime, int label) {
+	public HitCircle(int x, int y, int targetTime, String label, Color color) {
 		particleHandler = game.getParticleHandler();
-		
 		master = game.getCircleHandler();
-		
+		this.label = label;
+		this.color = color;
 		this.targetTime = targetTime;
 		this.x = x;
 		this.y = y;
@@ -75,30 +77,26 @@ public class HitCircle extends GameObject {
 	
 	public void tick() {
 		// calculate approach circle movement
-		// FIXME: this shit is clearly erroneous
 		eta = targetTime - game.localTime;
-		approachRadius = (int) (radius + (100 - radius) * ((double) eta / (double) visibleDuration));
+		approachRadius = (int) (radius + (INITIAL_APPROACH_CIRCLE_RADIUS - radius) * ((double) eta / (double) visibleDuration));
 		approachRadius = Game.clamp(approachRadius, radius - 1, 10000);
-		alpha = 255 - ((targetTime - visibleDuration) - game.localTime);
+		alpha = (int) (-FADE_RATE * ((targetTime - visibleDuration) - game.localTime));
 		alpha = Game.clamp(alpha, 0, 255);
-		approachColor = new Color(255, 255, 255, alpha);
 		
 		// state system
 		switch (state) {
 			case WAIT:
-				color = new Color(0, 0, 100, alpha);
 				if (game.localTime > targetTime - visibleDuration) {
 					state = State.VISIBLE;
 				}
 				break;
 			case VISIBLE:
-				color = new Color(0, 0, 116, alpha);
 				if (game.localTime > targetTime - timingWindow_50) {
 					state = State.CLICKABLE;
 				}
 				break;
 			case CLICKABLE:
-				color = new Color(0, 135, 195);
+				color = Color.WHITE;
 //				if (Math.abs(eta) < timingWindow_300)
 //					color = Color.GREEN;
 //				else if (Math.abs(eta) < timingWindow_100)
@@ -117,47 +115,46 @@ public class HitCircle extends GameObject {
 		if (distance < radius) {
 			if (state == State.CLICKABLE) {
 				if (Math.abs(eta) < timingWindow_300) {
-					game.debugMessage[1] = ("300~! " + eta);
 					particleHandler.add(new TimingJudge(x, y, 1));
 				} else if (Math.abs(eta) < timingWindow_100) {
-					game.debugMessage[1] = ("100~! " + eta);
 					particleHandler.add(new TimingJudge(x, y, 2));
 				} else if (Math.abs(eta) < timingWindow_50) {
-					game.debugMessage[1] = ("50~! " + eta);
 					particleHandler.add(new TimingJudge(x, y, 3));
 				}
 			} else {
-				game.debugMessage[1] = ("Timing Miss~!");
 				particleHandler.add(new TimingJudge(x, y, 0));
 			}
 			this.state = State.DELETEME;
 		} else {
-			game.debugMessage[1] = String.format("Miss~! You clicked: (%d, %d) Circle was at (%d, %d)", mx, my, x, y);
 		}
 	}
 	
 	public void draw() {
-		if (state != State.DELETEME) {
-			// approach circle
-			g.setColor(approachColor);
-			g.drawOval(x - approachRadius, y - approachRadius, approachRadius * 2, approachRadius * 2);
-			
-			// circle
-			g.setColor(color);
-			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
-			g.setColor(new Color(241, 250, 140, alpha));
-			g.setStroke(new BasicStroke(5));
-			g.drawOval(x - radius, y - radius, radius * 2, radius * 2);
-			g.setColor(new Color(20, 20, 20, 200));
-			g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
-			
-			// label
-			g.setFont(new Font("Arial", Font.PLAIN, 20));
-			g.setColor(new Color(255, 255, 255, alpha));
-			g.drawString(String.valueOf(eta), x-14, y+7);
-//			g.drawString(String.valueOf(label), x-4, y+5);
-			g.setFont(Game.DEFAULT_FONT);
-		}
+		// set transparency
+		setAlpha((float) alpha / 255f);
+		
+		// approach circle
+		g.setStroke(new BasicStroke(1.5f));
+		g.setColor(color);
+		g.drawOval(x - approachRadius, y - approachRadius, approachRadius * 2, approachRadius * 2);
+		
+		// hit circle
+		g.setColor(Color.BLACK);
+		g.fillOval(x - (radius + 1), y - (radius + 1), (radius + 1) * 2, (radius + 1) * 2);
+		g.setColor(Color.WHITE);
+		g.setStroke(new BasicStroke(3));
+		g.drawOval(x - (radius - 2), y - (radius - 2), (radius - 2) * 2, (radius - 2) * 2);
+		g.setColor(color);
+		g.setStroke(new BasicStroke(3));
+		g.drawOval(x - (radius - 4), y - (radius - 4), (radius - 4) * 2, (radius - 4) * 2);
+		
+		
+		// label
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("serif", Font.PLAIN, 40));
+		FontMetrics fontMetrics = g.getFontMetrics();
+		g.drawString(label, x - fontMetrics.stringWidth(label) / 2, y + 14);
+		
 	}
 	
 	public State getState() {
@@ -171,4 +168,5 @@ public class HitCircle extends GameObject {
 			", targetTime=" + targetTime +
 			'}';
 	}
+	
 }

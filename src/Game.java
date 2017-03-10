@@ -7,11 +7,9 @@ public class Game extends Canvas implements Runnable {
 	private boolean running = false;
 	public static final int WIDTH = (int) (800); //  640
 	public static final int HEIGHT = (int) (600); // 360
-	public static final int INPUT_OFFSET = 50;
-	public static final Font DEFAULT_FONT = new Font("monospace", Font.PLAIN, 12);
 	private Graphics2D g;
 	
-	private final double TIMESCALE =  0.7;
+	private final double TIMESCALE = 1;
 	
 	private long startTime;
 	public int localTime;
@@ -19,14 +17,12 @@ public class Game extends Canvas implements Runnable {
 	private CircleHandler circleHandler;
 	private ParticleHandler particleHandler;
 	
-	public String[] debugMessage = {"", "", "", "", "", ""};
-	
 	private Game() {
 		Window window = new Window(this);
 		Input input = new Input(this, window);
 		circleHandler = new CircleHandler(this);
 		particleHandler = new ParticleHandler();
-		circleHandler.setDifficulty(9.0, 4.0, 0.0);
+		circleHandler.setDifficulty(9.0, 4.0, 1.0);
 		addMouseListener(input);
 		addMouseMotionListener(input);
 		addKeyListener(input);
@@ -42,8 +38,6 @@ public class Game extends Canvas implements Runnable {
 		circleHandler.tickAll();
 		particleHandler.tickAll();
 		
-		debugMessage[0] = "Time: " + String.valueOf(localTime);
-		debugMessage[3] = String.format("Circles on screen: %d", circleHandler.objectCount());
 		circleHandler.tick();
 	}
 	private void render() {
@@ -63,10 +57,6 @@ public class Game extends Canvas implements Runnable {
 		particleHandler.renderAll();
 		
 		g.setColor(Color.WHITE);
-		for (int i = 0; i < debugMessage.length-1; i++) {
-//			g.drawString(debugMessage[i], 12, 20+i*20);
-		}
-		g.drawString(debugMessage[5], WIDTH - 75, HEIGHT - 40);
 		
 		g.dispose();
 		bs.show();
@@ -92,7 +82,6 @@ public class Game extends Canvas implements Runnable {
 			frames++;
 			if (System.currentTimeMillis() - timer > 1000) {
 				timer += 1000;
-				debugMessage[5] = "FPS: " + frames;
 				frames = 0;
 			}
 		}
