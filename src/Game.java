@@ -12,17 +12,18 @@ public class Game extends Canvas implements Runnable {
 	private final double TIMESCALE = 1;
 	
 	private long startTime;
-	public int localTime;
+	
+	private int localTime;
 	
 	private CircleHandler circleHandler;
-	private ParticleHandler particleHandler;
 	
+	private ParticleHandler particleHandler;
 	private Game() {
 		Window window = new Window(this);
 		Input input = new Input(this, window);
 		circleHandler = new CircleHandler(this);
 		particleHandler = new ParticleHandler();
-		circleHandler.setDifficulty(9.0, 4.0, 1.0);
+		circleHandler.setDifficulty(8.0, 4.0, 1.0);
 		addMouseListener(input);
 		addMouseMotionListener(input);
 		addKeyListener(input);
@@ -40,6 +41,7 @@ public class Game extends Canvas implements Runnable {
 		
 		circleHandler.tick();
 	}
+	
 	private void render() {
 		BufferStrategy bs = this.getBufferStrategy();
 		if (bs == null) {
@@ -61,7 +63,6 @@ public class Game extends Canvas implements Runnable {
 		g.dispose();
 		bs.show();
 	}
-	
 	public void run() {
 		long lastTime = System.nanoTime();
 		double amountOfTicks = 120.0;
@@ -87,6 +88,7 @@ public class Game extends Canvas implements Runnable {
 		}
 		stop();
 	}
+	
 	private synchronized void start() {
 		System.out.println("Starting application...");
 		thread = new Thread(this);
@@ -105,26 +107,35 @@ public class Game extends Canvas implements Runnable {
 			e.printStackTrace();
 		}
 	}
-	
 	public static void main(String[] args) {
 		game = new Game();
 	}
 	
-	public static int clamp(int target, int min, int max) {
-		if (target < min)
-			return min;
-		if (target > max)
-			return max;
-		return target;
+	public static int clamp(int val, int min, int max) {
+		return Math.max(min, Math.min(max, val));
 	}
-	// TODO: implement lerp function
-	public static int lerp() {
-		
+	
+	public static float clamp(float val, float min, float max) {
+		return Math.max(min, Math.min(max, val));
+	}
+	public static double clamp(double val, double min, double max) {
+		return Math.max(min, Math.min(max, val));
+	}
+	public static int lerp(int from, int to, float progression) {
+		progression = clamp(progression, 0, 1);
+		return (int) (from + (to-from)*progression);
+	}
+	public static float lerp(float from, float to, float progression) {
+		progression = clamp(progression, 0, 1);
+		return from + (to-from)*progression;
+	}
+	public static double lerp(double from, double to, float progression) {
+		progression = clamp(progression, 0, 1);
+		return from + (to-from)*progression;
 	}
 	public static Game getInstance() {
 		return game;
 	}
-	
 	public CircleHandler getCircleHandler() {
 		return circleHandler;
 	}
@@ -135,6 +146,10 @@ public class Game extends Canvas implements Runnable {
 	
 	public ParticleHandler getParticleHandler() {
 		return particleHandler;
+	}
+	
+	public int getLocalTime() {
+		return localTime;
 	}
 	
 	

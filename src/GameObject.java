@@ -1,8 +1,5 @@
 import java.awt.*;
 
-/**
- * Created by JR on 2017-03-10.
- */
 abstract class GameObject {
 	// just some things to make drawing game objects easier
 	Graphics2D g;

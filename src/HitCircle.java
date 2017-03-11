@@ -15,12 +15,14 @@ public class HitCircle extends GameObject {
 		WAIT,
 		VISIBLE,
 		CLICKABLE,
+		DISAPPEAR,
 		DELETEME
 	}
 	
 	// some variables
-	private static final int INITIAL_APPROACH_CIRCLE_RADIUS = 170;
-	private static final double FADE_RATE = 1.5;
+	private static final float INITIAL_APPROACH_RADIUS_FACTOR = 4.25f;
+	private static final float FADE_RATE = 1.5f;
+	private static final float FADE_TIME = 110;
 	private int visibleDuration;
 	private int timingWindow_50, timingWindow_100, timingWindow_300;
 	private ParticleHandler particleHandler;
@@ -28,8 +30,9 @@ public class HitCircle extends GameObject {
 	private State state;
 	private Color color;
 	private String label;
-	private int alpha;
+	private float alpha;
 	private int eta;
+	private int deleteTime;
 	// instance specific properties
 	private int targetTime;
 	public int x, y;
@@ -77,33 +80,36 @@ public class HitCircle extends GameObject {
 	
 	public void tick() {
 		// calculate approach circle movement
-		eta = targetTime - game.localTime;
-		approachRadius = (int) (radius + (INITIAL_APPROACH_CIRCLE_RADIUS - radius) * ((double) eta / (double) visibleDuration));
-		approachRadius = Game.clamp(approachRadius, radius - 1, 10000);
-		alpha = (int) (-FADE_RATE * ((targetTime - visibleDuration) - game.localTime));
-		alpha = Game.clamp(alpha, 0, 255);
+		eta = targetTime - game.getLocalTime();
+		approachRadius = Game.lerp((int) (radius * INITIAL_APPROACH_RADIUS_FACTOR), radius, 1.0f - (float) eta / (float) visibleDuration);
+		alpha = -FADE_RATE * (targetTime - visibleDuration - game.getLocalTime());
+		alpha = Game.clamp(alpha, 0f, 1f);
+		// TODO: finish writing this
+		alpha = Game.lerp(0.0f, 1.0f, ((float) visibleDuration - (float) eta)/FADE_TIME);
 		
 		// state system
 		switch (state) {
 			case WAIT:
-				if (game.localTime > targetTime - visibleDuration) {
+				if (game.getLocalTime() > targetTime - visibleDuration) {
 					state = State.VISIBLE;
 				}
 				break;
 			case VISIBLE:
-				if (game.localTime > targetTime - timingWindow_50) {
+				if (game.getLocalTime() > (targetTime - timingWindow_50))
 					state = State.CLICKABLE;
-				}
 				break;
 			case CLICKABLE:
 				color = Color.WHITE;
-//				if (Math.abs(eta) < timingWindow_300)
-//					color = Color.GREEN;
-//				else if (Math.abs(eta) < timingWindow_100)
-//					color = Color.YELLOW;
-//				else if (Math.abs(eta) < timingWindow_50)
-//					color = Color.RED;
-				if (game.localTime > targetTime + timingWindow_50) {
+				if (game.getLocalTime() > targetTime /*+ timingWindow_50*/) {
+					deleteTime = game.getLocalTime();
+					state = State.DISAPPEAR;
+				}
+				break;
+			case DISAPPEAR:
+				System.out.println("I'm disappearing!");
+				alpha = Game.lerp(1.0f, 0.0f, (game.getLocalTime() - deleteTime)/FADE_TIME);
+				if (alpha <= 0) {
+					System.out.println("circle deleted.");
 					state = State.DELETEME;
 				}
 				break;
@@ -111,7 +117,7 @@ public class HitCircle extends GameObject {
 	}
 	
 	public void onClick(int mx, int my) {
-		double distance = Math.hypot(mx - x, my - y);
+		float distance = (float) Math.hypot(mx - x, my - y);
 		if (distance < radius) {
 			if (state == State.CLICKABLE) {
 				if (Math.abs(eta) < timingWindow_300) {
@@ -131,7 +137,7 @@ public class HitCircle extends GameObject {
 	
 	public void draw() {
 		// set transparency
-		setAlpha((float) alpha / 255f);
+		setAlpha(alpha);
 		
 		// approach circle
 		g.setStroke(new BasicStroke(1.5f));
@@ -151,9 +157,9 @@ public class HitCircle extends GameObject {
 		
 		// label
 		g.setColor(Color.WHITE);
-		g.setFont(new Font("serif", Font.PLAIN, 40));
+		g.setFont(new Font("serif", Font.PLAIN, 36));
 		FontMetrics fontMetrics = g.getFontMetrics();
-		g.drawString(label, x - fontMetrics.stringWidth(label) / 2, y + 14);
+		g.drawString(label, x+1 - fontMetrics.stringWidth(label) / 2, y + 12);
 		
 	}
 	

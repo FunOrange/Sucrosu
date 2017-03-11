@@ -3,7 +3,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class CircleHandler {
-	private static final int SPAWN_BUFFER = 800;
+	private static final int SPAWN_BUFFER = 1000;
 	private LinkedList<HitCircle> circles = new LinkedList<>();
 	private Game game;
 	private Color[] colors = new Color[] {
@@ -35,7 +35,7 @@ public class CircleHandler {
 		// spawn circles in
 		if (nextIndex < data.length) {
 			Entry nextCircle = data.getEntry(nextIndex);
-			if (game.localTime > nextCircle.time - SPAWN_BUFFER) {
+			if (game.getLocalTime() > nextCircle.time - SPAWN_BUFFER) {
 				circles.add(new HitCircle(nextCircle.x, nextCircle.y, nextCircle.time, String.format("%d", nextIndex), colors[(nextIndex/5)%5]));
 				nextIndex++;
 			}
